@@ -7,22 +7,70 @@
     </head>
     <body>
 		<canvas id="buyers" width="600" height="400"></canvas>
-		
+        <br>
+        <form name="listes">
+		<select name="valeur" onchange="recupere();" >
+          
+                <option value="Temp_DHT11">Température DHT11</option>
+                <option value="Hum_DHT11">Humidité DHT11</option>            
+                <option value="Temp_DALLAS">Sonde de température DALLAS</option>
+                <option value="CO2">CO2</option>
+                <option value="Lux">Lumière</option>
+                <option value="Son">Son</option>            
+                <option value="Ph">Ph-metre</option>
+                <option value="Pression">Baromètre</option>
+                <option value="Particules">Baromètre</option>
+
+
+        </select>
+        </form>
+        <form name="formulaire">
+            <input type="text" name="choix" />
+        </form>
+         <button id="b">export to CSV</button>
+    </body>
+</html>
 
 	<script>
+
+    var num_capteur;
+    function recupere()
+    {
+        var xh = new XMLHttpRequest();
+        num_capteur = document.listes.valeur.selectedIndex;
+        var texte = document.listes.valeur.options[num_capteur].value;
+        document.formulaire.choix.value=num_capteur;
+
+        if (num_capteur == 2){
+        xh.open("GET", "/yolo", true);
+        xh.send(null);
+        }
+    }
+    var val_export;
+    function exportToCsv() {
+            var myCsv = val_export;
+
+            window.open('data:text/csv;charset=utf-8,' + escape(myCsv));
+    }
+
+        var button = document.getElementById('b');
+        button.addEventListener('click', exportToCsv);
+
+
+
 var N = 30;
 // Array filled with N values at '0'
 var zero_array = [];
 
 for (i = 0; i < N; i++)
-    zero_array.push(1);
+    zero_array.push(0);
 
 // The data of the chart, describe the differents sets of data you want with points, colors...
 var data = {
         labels: zero_array,
         datasets:  [
             {
-                label: "DataSet #1", // Name of the line
+                label: "temps", // Name of the line
                 data: zero_array, // data to represent
                 // The following makes the line way less ugly
                 fillColor: "rgba(151,187,205,0.2)",
@@ -35,9 +83,11 @@ var data = {
         ]
 };
 
-// We wait for everything to be loaded
-window.onload = function main() {
 
+window.onload = function main() {
+// We wait for everything to be loaded
+
+        
     // Get the context of the canvas
     var ctx = document.getElementById("buyers").getContext("2d");
 
@@ -50,32 +100,37 @@ window.onload = function main() {
 	var heap,temp,digi,val_temp;
        
      function rand_value() {
+         
+         
       var xh = new XMLHttpRequest();
       xh.onreadystatechange = function(){
         if (xh.readyState == 4){
           if(xh.status == 200) {
             var res = JSON.parse(xh.responseText);           
             temp=res.analog;
+
             console.log(temp);
-            val_temp=temp.toString();
+            line_example_chart.removeData();
+        
+            line_example_chart.addData([temp], label_idx++);
+            val_export+=[temp]+";";
+            
           } 
         }
       };
-
-        // Remove the point at the far left of the chart
-        line_example_chart.removeData();
+   
+                // Remove the point at the far left of the chart
+       
         
-        // Add the random value at the far right of the chart
-        line_example_chart.addData([temp], label_idx++);
+        
         xh.open("GET", "/all", true);
 		xh.send(null);
     }
     // Run rand_value() every 2 seconds
-    window.setInterval(rand_value, 500);
+    window.setInterval(rand_value, 1500);
 }
 	</script>
 
 
-    </body>
-</html>
+
 
